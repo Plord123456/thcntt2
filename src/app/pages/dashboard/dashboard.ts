@@ -74,7 +74,6 @@ export class DashboardComponent implements OnInit {
     this.applyFilters();
   }
 
-  // Hàm xuất dữ liệu đang hiển thị ra file CSV
   exportToCsv(): void {
     if (this.attendanceRecords.length === 0) {
       alert("Không có dữ liệu để xuất.");
