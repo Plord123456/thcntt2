@@ -10,8 +10,8 @@ import {ApiService} from '../../services/api';
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, // Cần cho *ngFor, *ngIf, | date
-    FormsModule   // Cần cho [(ngModel)]
+    CommonModule,
+    FormsModule
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
@@ -63,7 +63,6 @@ export class DashboardComponent implements OnInit {
     XLSX.utils.book_append_sheet(wb, ws, 'BaoCaoChamCong');
     XLSX.writeFile(wb, 'BaoCaoChamCong.xlsx');
   }
-
 
   logout(): void {
     this.router.navigate(['/login']);
