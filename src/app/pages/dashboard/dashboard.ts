@@ -1,69 +1,104 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { ApiService } from '../../services/api';
 import { FormsModule } from '@angular/forms';
-import * as XLSX from 'xlsx';
-import {ApiService} from '../../services/api';
-
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
-    CommonModule, // Cần cho *ngFor, *ngIf, | date
-    FormsModule   // Cần cho [(ngModel)]
-  ],
+  imports: [CommonModule, FormsModule],
+  providers: [DatePipe],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
 export class DashboardComponent implements OnInit {
 
-  public chamCongData: any[] = [];
-  public filteredData: any[] = [];
-  public searchTerm: string = '';
+  // Các biến cho thẻ thống kê
+  stats = { totalEmployees: 0, attendanceToday: 0, lateToday: 0 };
+
+  // Danh sách chấm công hiển thị ra bảng
+  attendanceRecords: any[] = [];
+
+  // Object chứa các giá trị của bộ lọc
+  public filters = {
+    search: '',
+    date: ''
+  };
+
+  public isLoading = false;
 
   constructor(
     private apiService: ApiService,
-    private router: Router
-  ) { }
-  goToEmployeeManagement(): void {
-    this.router.navigate(['/employee-management']);
-  }
-  ngOnInit(): void {
-    this.loadData();
+    private router: Router,
+    private datePipe: DatePipe
+  ) {
+    // Mặc định lọc theo ngày hôm nay khi tải trang
+    this.filters.date = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
   }
 
-  loadData(): void {
-    this.apiService.getAllChamCong().subscribe({
-      next: (data) => {
-        this.chamCongData = data;
-        this.filteredData = data;
-      },
-      error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+  ngOnInit(): void {
+    this.loadStats();
+    this.applyFilters(); // Tải dữ liệu chấm công cho ngày hôm nay
+  }
+
+  // Tải các thẻ thống kê
+  loadStats(): void {
+    this.apiService.getDashboardStats().subscribe(data => {
+      this.stats = data;
     });
   }
 
+  // Hàm chính để áp dụng bộ lọc và gọi API
+  applyFilters(): void {
+    this.isLoading = true;
+    this.attendanceRecords = [];
 
-  search(): void {
-    if (!this.searchTerm) {
-      this.filteredData = this.chamCongData;
+    this.apiService.getAttendanceRecords(this.filters).subscribe({
+      next: (data) => {
+        this.attendanceRecords = data;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching attendance records:', err);
+        alert('Có lỗi xảy ra khi tải dữ liệu báo cáo.');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // Xóa trắng các bộ lọc và tải lại dữ liệu không giới hạn
+  clearFilters(): void {
+    this.filters.search = '';
+    this.filters.date = '';
+    this.applyFilters();
+  }
+
+  // Hàm xuất dữ liệu đang hiển thị ra file CSV
+  exportToCsv(): void {
+    if (this.attendanceRecords.length === 0) {
+      alert("Không có dữ liệu để xuất.");
       return;
     }
-    const lowerCaseSearchTerm = this.searchTerm.toLowerCase();
-    this.filteredData = this.chamCongData.filter(record =>
-      record.HoVaTen?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      record.RFID?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      record.Ngay?.toString().toLowerCase().includes(lowerCaseSearchTerm)
+    const headers = ['HoVaTen', 'RFID', 'Ngay', 'ThoiGianVao', 'ThoiGianRa', 'Status'];
+    const csvData = this.attendanceRecords.map(record =>
+      headers.map(header => `"${record[header] || ''}"`).join(',')
     );
+    const csvContent = [headers.join(','), ...csvData].join('\n');
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `BaoCaoChamCong_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
-  exportToExcel(): void {
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.filteredData);
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'BaoCaoChamCong');
-    XLSX.writeFile(wb, 'BaoCaoChamCong.xlsx');
+  // Điều hướng
+  goToEmployeeManagement(): void {
+    this.router.navigate(['/employee-management']);
   }
-
 
   logout(): void {
     this.router.navigate(['/login']);

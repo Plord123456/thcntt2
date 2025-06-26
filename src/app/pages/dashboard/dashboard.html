@@ -1,51 +1,73 @@
+<div class="header-bar">
+  <div class="brand">HỆ THỐNG QUẢN LÝ NHÂN SỰ</div>
+  <div class="user-actions">
+    <span>Xin chào, Admin!</span>
+    <button class="btn btn-info" (click)="goToEmployeeManagement()">Cập nhật Nhân viên</button>
+    <button class="btn btn-danger" (click)="logout()">Đăng xuất</button>
+  </div>
+</div>
+
 <div class="main-container">
-  <header class="header-bar">
-    <span class="brand">Hệ Thống Quản Lý Chấm Công</span>
-    <button class="btn" (click)="logout()">Đăng Xuất</button>
-    <button class="btn" (click)="goToEmployeeManagement()">Quản Lý Nhân Viên</button>
-  </header>
+  <h1 class="page-title">Bảng điều khiển & Báo cáo</h1>
 
-  <h2 class="title">Bảng Điều Khiển Chấm Công</h2>
+  <div class="stats-grid">
+    <div class="stat-card employees"><h2>Tổng Nhân Viên</h2><p>{{ stats.totalEmployees }}</p></div>
+    <div class="stat-card present"><h2>Chấm Công Hôm Nay</h2><p>{{ stats.attendanceToday }}</p></div>
+    <div class="stat-card late"><h2>Đi Trễ Hôm Nay</h2><p>{{ stats.lateToday }}</p></div>
+  </div>
 
-  <section class="card">
+  <div class="card">
+    <div class="card-header">
+      <h3>Báo cáo Chấm công</h3>
+      <form class="filter-form" (ngSubmit)="applyFilters()">
+        <div class="form-group">
+          <label>Tìm theo Tên hoặc RFID:</label>
+          <input type="text" class="form-control" placeholder="Nhập từ khóa..." [(ngModel)]="filters.search" name="searchTerm">
+        </div>
+        <div class="form-group">
+          <label>Lọc theo ngày:</label>
+          <input type="date" class="form-control" [(ngModel)]="filters.date" name="filterDate">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+          <button type="button" class="btn btn-secondary" (click)="clearFilters()">Xóa bộ lọc</button>
+        </div>
+      </form>
+    </div>
+
     <div class="card-body">
-      <div class="search-row">
-        <input type="text" class="input" placeholder="Tìm kiếm theo tên nhân viên, RFID, ngày..." [(ngModel)]="searchTerm" (input)="search()">
-        <button class="btn primary" (click)="search()">Tra Cứu</button>
-        <button class="btn success" (click)="exportToExcel()">Xuất Báo Cáo</button>
+      <div class="table-header">
+        <h4>Kết quả</h4>
+        <button class="btn btn-success" (click)="exportToCsv()" [disabled]="attendanceRecords.length === 0">
+          Xuất báo cáo (CSV)
+        </button>
+      </div>
+      <div class="table-wrapper">
+        <table class="custom-table">
+          <thead>
+          <tr>
+            <th>Họ và Tên</th>
+            <th>RFID</th>
+            <th>Ngày</th>
+            <th>Giờ Vào</th>
+            <th>Giờ Ra</th>
+            <th>Trạng thái</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let record of attendanceRecords">
+            <td>{{ record.HoVaTen || 'Chưa cập nhật' }}</td>
+            <td>{{ record.RFID }}</td>
+            <td>{{ record.Ngay | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ record.ThoiGianVao }}</td>
+            <td>{{ record.ThoiGianRa || '---' }}</td>
+            <td><span class="badge" [ngClass]="{'badge-success': record.Status === 'DUNG GIO', 'badge-danger': record.Status === 'DI TRE'}">{{ record.Status }}</span></td>
+          </tr>
+          <tr *ngIf="isLoading"><td colspan="6" class="status-cell">Đang tải...</td></tr>
+          <tr *ngIf="!isLoading && attendanceRecords.length === 0"><td colspan="6" class="status-cell">Không có dữ liệu.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </section>
-
-  <div class="table-container">
-    <table class="employee-table">
-      <thead>
-      <tr>
-        <th>Họ và Tên</th>
-        <th>RFID</th>
-        <th>Ngày</th>
-        <th>Thời Gian Vào</th>
-        <th>Thời Gian Ra</th>
-        <th>Trạng Thái</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let record of filteredData">
-        <td>{{ record.HoVaTen }}</td>
-        <td>{{ record.RFID }}</td>
-        <td>{{ record.Ngay | date: 'dd/MM/yyyy' }}</td>
-        <td>{{ record.ThoiGianVao }}</td>
-        <td>{{ record.ThoiGianRa || 'Chưa check-out' }}</td>
-        <td>
-            <span class="badge" [ngClass]="{'success': record.Status === 'DUNG GIO', 'danger': record.Status === 'DI TRE'}">
-              {{ record.Status }}
-            </span>
-        </td>
-      </tr>
-      <tr *ngIf="filteredData.length === 0">
-        <td colspan="6" class="text-center">Không tìm thấy dữ liệu phù hợp.</td>
-      </tr>
-      </tbody>
-    </table>
   </div>
 </div>

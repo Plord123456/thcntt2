@@ -14,6 +14,23 @@ export class ApiService {
    * Lấy danh sách chấm công.
    * @param date - Ngày cần lọc, định dạng YYYY-MM-DD. Nếu không có, sẽ lấy tất cả.
    */
+  getAttendanceRecords(filters: { date?: string, search?: string }): Observable<any[]> {
+    let params = new HttpParams();
+
+    if (filters.date) {
+      params = params.set('date', filters.date);
+    }
+    if (filters.search) {
+      params = params.set('search', filters.search);
+    }
+
+    return this.http.get<any[]>(`${this.baseUrl}/getAllChamCong`, { params });
+  }
+
+  // Các hàm API khác giữ nguyên
+  getAllNhanVien(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/nhanvien`);
+  }
   getAllChamCong(date?: string): Observable<any[]> {
     let params = new HttpParams();
     if (date) {
@@ -24,14 +41,9 @@ export class ApiService {
     return this.http.get<any[]>(`${this.baseUrl}/getAllChamCong`, { params });
   }
 
-  // --- Các hàm khác giữ nguyên ---
 
   getDashboardStats(): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/dashboard/stats`);
-  }
-
-  getAllNhanVien(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/nhanvien`);
   }
 
   updateNhanVien(rfid: string, data: any): Observable<any> {
