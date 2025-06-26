@@ -1,3 +1,62 @@
+<div class="main-container">
+  <header class="header-bar">
+    <span class="brand">Hệ Thống Quản Lý Chấm Công</span>
+    <div>
+      <button class="btn btn-secondary" (click)="logout()">Đăng Xuất</button>
+      <button class="btn" (click)="goToDashboard()">Dashboard</button>
+    </div>
+  </header>
+
+  <div class="content-area">
+    <h2 class="page-title">Quản Lý Nhân Viên</h2>
+
+    <div class="action-bar">
+      <div class="search-box">
+        <input
+          type="text"
+          class="input-search"
+          placeholder="Tìm kiếm theo tên, RFID..."
+          [(ngModel)]="searchTerm"
+          (input)="searchEmployees()"
+        />
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="table-wrapper">
+        <table class="employee-table">
+          <thead>
+          <tr>
+            <th>RFID</th>
+            <th>Họ và Tên</th>
+            <th>Ngày Sinh</th>
+            <th>Số Điện Thoại</th>
+            <th>Email</th>
+            <th>Hành Động</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let nv of filteredEmployees">
+            <td>{{ nv.RFID }}</td>
+            <td>{{ nv.HoVaTen }}</td>
+            <td>{{ nv.NgaySinh | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ nv.SoDienThoai }}</td>
+            <td>{{ nv.Email }}</td>
+            <td class="action-buttons">
+              <button class="btn btn-edit" (click)="openEditModal(nv)">Sửa</button>
+              <button class="btn btn-danger" (click)="deleteEmployee(nv.RFID)">Xóa</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredEmployees.length === 0">
+            <td colspan="6" class="no-data">Không tìm thấy nhân viên nào.</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
 <div class="modal-overlay" [class.active]="isModalOpen">
   <div class="modal-content">
     <div class="modal-header">
@@ -5,32 +64,26 @@
       <button class="close-button" (click)="closeModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <form [formGroup]="employeeForm" (ngSubmit)="onUpdateSubmit()">
+      <form #employeeForm="ngForm" (ngSubmit)="onUpdateSubmit()">
         <div class="form-group">
           <label>RFID</label>
-          <input type="text" formControlName="RFID">
+          <input type="text" [(ngModel)]="currentEmployee.RFID" name="RFID" disabled>
         </div>
         <div class="form-group">
           <label for="hoten">Họ và Tên</label>
-          <input type="text" id="hoten" formControlName="HoVaTen">
-          <div *ngIf="employeeForm.get('HoVaTen')?.invalid && employeeForm.get('HoVaTen')?.touched" class="validation-error">
-            Họ và tên là bắt buộc.
-          </div>
+          <input type="text" id="hoten" [(ngModel)]="currentEmployee.HoVaTen" name="HoVaTen" required>
         </div>
         <div class="form-group">
           <label for="ngaysinh">Ngày Sinh</label>
-          <input type="date" id="ngaysinh" formControlName="NgaySinh">
+          <input type="date" id="ngaysinh" [(ngModel)]="currentEmployee.NgaySinh" name="NgaySinh">
         </div>
         <div class="form-group">
           <label for="sdt">Số Điện Thoại</label>
-          <input type="text" id="sdt" formControlName="SoDienThoai">
+          <input type="text" id="sdt" [(ngModel)]="currentEmployee.SoDienThoai" name="SoDienThoai">
         </div>
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" formControlName="Email">
-          <div *ngIf="employeeForm.get('Email')?.invalid && employeeForm.get('Email')?.touched" class="validation-error">
-            Vui lòng nhập email hợp lệ.
-          </div>
+          <input type="email" id="email" [(ngModel)]="currentEmployee.Email" name="Email">
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Hủy</button>
