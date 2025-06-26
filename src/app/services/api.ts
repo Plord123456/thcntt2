@@ -1,49 +1,49 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:8081';
+  private baseUrl = 'http://localhost:8081'; // URL backend của bạn
 
   constructor(private http: HttpClient) { }
 
   /**
-   * Sends login credentials to the backend.
-   * @param credentials Object with username and password.
+   * Lấy danh sách chấm công.
+   * @param date - Ngày cần lọc, định dạng YYYY-MM-DD. Nếu không có, sẽ lấy tất cả.
    */
-  login(credentials: { username: string; password: string }): Observable<any> {
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post(`${this.apiUrl}/login`, credentials, { headers });
+  getAllChamCong(date?: string): Observable<any[]> {
+    let params = new HttpParams();
+    if (date) {
+      // Thêm tham số 'date' vào request nếu nó được cung cấp
+      params = params.append('date', date);
+    }
+    // Gửi request GET với tham số
+    return this.http.get<any[]>(`${this.baseUrl}/getAllChamCong`, { params });
   }
 
-  getAllChamCong(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/getAllChamCong`);
+  // --- Các hàm khác giữ nguyên ---
+
+  getDashboardStats(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/dashboard/stats`);
   }
 
-  getLateEmployees(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/getLateEmployees`);
+  getAllNhanVien(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/nhanvien`);
   }
 
-  // LẤY DANH SÁCH TẤT CẢ NHÂN VIÊN
-  getAllNhanVien(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/nhanvien`);
-  }
-
-  // LẤY THÔNG TIN CỦA MỘT NHÂN VIÊN THEO RFID
-  getNhanVienById(rfid: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/nhanvien/${rfid}`);
-  }
   updateNhanVien(rfid: string, data: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/updateNV/${rfid}`, data);
-  }
-deleteNhanVien(rfid: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/deleteNV/${rfid}`);
-}
-  addNhanVien(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/addNV`, data);
+    return this.http.put(`${this.baseUrl}/updateNV/${rfid}`, data);
   }
 
+  deleteNhanVien(rfid: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/deleteNV/${rfid}`);
+  }
+
+  // Thêm các hàm API khác nếu cần
+  login(credentials: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/login`, credentials);
+  }
 }
