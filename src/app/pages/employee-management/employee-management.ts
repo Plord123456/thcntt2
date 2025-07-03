@@ -16,7 +16,7 @@ export class EmployeeManagementComponent implements OnInit {
   allEmployees: any[] = [];
   filteredEmployees: any[] = [];
 
-  isModalOpen = false; // Chỉ cần 1 biến để điều khiển modal
+  isModalOpen = false; 
 
   currentEmployee: any = {};
   searchTerm: string = '';

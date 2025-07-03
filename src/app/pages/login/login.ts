@@ -19,7 +19,7 @@ export class LoginComponent {
   username = '';
   password = '';
   errorMessage = '';
-  isLoading = false; // Khởi tạo là false, Rất tốt!
+  isLoading = false;
 
   constructor(
     private router: Router,
@@ -27,15 +27,12 @@ export class LoginComponent {
   ) {}
 
   onSubmit(): void {
-    // 1. Kiểm tra validation trước
     if (!this.username || !this.password) {
       this.errorMessage = 'Vui lòng nhập đầy đủ thông tin.';
-      return; // Chỉ hiện lỗi và thoát, không làm gì thêm
+      return;
     }
-
-    // 2. MỌI THỨ HỢP LỆ -> BẮT ĐẦU QUÁ TRÌNH GỬI ĐI
-    this.isLoading = true;    // <-- Bật loading ở ĐÂY
-    this.errorMessage = '';   // <-- Xóa thông báo lỗi cũ đi
+    this.isLoading = true;
+    this.errorMessage = '';
 
     const credentials = {
       username: this.username,
@@ -43,15 +40,13 @@ export class LoginComponent {
     };
 
     this.apiService.login(credentials).subscribe({
-      // Trường hợp đăng nhập thành công
       next: (response) => {
-        this.isLoading = false; // <-- Tắt loading khi xong
+        this.isLoading = false;
         console.log('Đăng nhập thành công:', response);
         this.router.navigate(['/dashboard']);
       },
-      // Trường hợp có lỗi từ server
       error: (err) => {
-        this.isLoading = false; // <-- Tắt loading khi có lỗi
+        this.isLoading = false;
         console.error('Lỗi đăng nhập:', err);
         this.errorMessage = err.error?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.';
       }
